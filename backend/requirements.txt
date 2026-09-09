@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+yt-dlp
+librosa
+pydantic
+openai
+numpy
+scipy
+python-multipart
+python-dotenv
+gunicorn

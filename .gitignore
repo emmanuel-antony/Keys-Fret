@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+
+# Node/JS
+node_modules/
+dist/
+build/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Project Specific
+backend/data/
+backend/ffmpeg/
+backend/ffmpeg.tar.xz
+
+# OS
+.DS_Store
+Thumbs.db
