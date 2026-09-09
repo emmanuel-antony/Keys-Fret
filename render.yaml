@@ -11,7 +11,7 @@ services:
         value: "/opt/render/project/src/backend/ffmpeg/ffmpeg"
       - key: FRONTEND_URL
         # Replace this with your actual deployed frontend URL (e.g. from Vercel)
-        value: "http://localhost:5173"
+        value: "https://keys-fret.vercel.app/"
       - key: GENERATIVE_ENGINE_API_KEY
         sync: false
       - key: LLM_BASE_URL
