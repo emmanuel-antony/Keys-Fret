@@ -304,9 +304,22 @@ async def translate_chords(chords: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     } for c in chords]
 
 
+def cleanup_old_audio():
+    """Deletes .mp3 and .wav files older than 1 hour to prevent disk space from filling up."""
+    now = time.time()
+    for ext in ("*.mp3", "*.wav"):
+        for f in glob.glob(os.path.join(AUDIO_DIR, ext)):
+            try:
+                if os.stat(f).st_mtime < now - 3600:
+                    os.remove(f)
+                    logger.info(f"[Cleanup] Deleted old audio file: {f}")
+            except Exception as e:
+                logger.error(f"[Cleanup] Failed to delete {f}: {e}")
+
 # ── Main endpoint ──────────────────────────────────────────────────────────────
 @app.post("/api/process-audio", response_model=MusicIRResponse)
 async def process_audio(request: AudioRequest):
+    cleanup_old_audio()
     t_req = time.time()
     url = request.url
     logger.info(f"[API] ► Request received: {url}")
@@ -314,9 +327,10 @@ async def process_audio(request: AudioRequest):
     file_id        = str(uuid.uuid4())
     output_path    = os.path.join(AUDIO_DIR, f"{file_id}.mp3")
 
+    cookie_path = os.path.join(os.path.dirname(__file__), "cookies.txt")
     ydl_opts = {
         "format": "bestaudio/best",
-        "outtmpl": os.path.join(AUDIO_DIR, f"{file_id}.%(ext)s"),
+        "outtmpl": output_path,
         "postprocessors": [{
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
@@ -329,6 +343,10 @@ async def process_audio(request: AudioRequest):
         # Point yt-dlp to the installed FFmpeg binary or local static binary
         "ffmpeg_location": os.environ.get("FFMPEG_LOCATION", shutil.which("ffmpeg") or "ffmpeg"),
     }
+    
+    # If the user has provided a cookies.txt file, use it to bypass YouTube bot detection
+    if os.path.exists(cookie_path):
+        ydl_opts["cookiefile"] = cookie_path
 
     try:
         # ── Step 1: Download ─────────────────────────────────────────────────
@@ -376,6 +394,7 @@ async def process_audio(request: AudioRequest):
 
 @app.post("/api/upload-audio", response_model=MusicIRResponse)
 async def upload_audio(file: UploadFile = File(...)):
+    cleanup_old_audio()
     t_req = time.time()
     logger.info(f"[API] ► Upload request received: {file.filename}")
 
