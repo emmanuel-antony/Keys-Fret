@@ -327,7 +327,12 @@ async def process_audio(request: AudioRequest):
     file_id        = str(uuid.uuid4())
     output_path    = os.path.join(AUDIO_DIR, f"{file_id}.mp3")
 
-    cookie_path = os.path.join(os.path.dirname(__file__), "cookies.txt")
+    # Dynamically look for any cookies file in the backend folder
+    cookie_path = None
+    cookie_candidates = glob.glob(os.path.join(os.path.dirname(__file__), "*cookies*.txt"))
+    if cookie_candidates:
+        cookie_path = cookie_candidates[0]
+
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": output_path,
@@ -344,9 +349,12 @@ async def process_audio(request: AudioRequest):
         "ffmpeg_location": os.environ.get("FFMPEG_LOCATION", shutil.which("ffmpeg") or "ffmpeg"),
     }
     
-    # If the user has provided a cookies.txt file, use it to bypass YouTube bot detection
-    if os.path.exists(cookie_path):
+    # If the user has provided a cookies file, use it to bypass YouTube bot detection
+    if cookie_path:
+        logger.info(f"[API] 🍪 Found cookies file at: {cookie_path}")
         ydl_opts["cookiefile"] = cookie_path
+    else:
+        logger.warning("[API] ⚠️ No cookies file found! YouTube download will likely fail.")
 
     try:
         # ── Step 1: Download ─────────────────────────────────────────────────
