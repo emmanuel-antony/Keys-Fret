@@ -343,6 +343,8 @@ async def process_audio(request: AudioRequest):
         }],
         "quiet": True,
         "no_warnings": True,
+        # Spoof mobile clients to bypass YouTube's strict desktop bot protection
+        "extractor_args": {"youtube": {"player_client": ["android", "ios"]}},
         # Bypass Capgemini corporate SSL certificate
         "nocheckcertificate": True,
         # Point yt-dlp to the installed FFmpeg binary or local static binary
